@@ -84,8 +84,8 @@ export const api = {
     await invoke('stage_update');
   },
   /** Install a staged release after preferences are saved. Windows may exit during handoff. */
-  async installUpdate(): Promise<void> {
-    await invoke('install_update');
+  async installUpdate(restart: boolean): Promise<void> {
+    await invoke('install_update', { restart });
   },
   /** Open the project's fixed release downloads page in the system browser. */
   async releaseDownloads(): Promise<void> {

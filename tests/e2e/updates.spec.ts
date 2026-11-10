@@ -3,13 +3,24 @@ import { expect, test } from './fixtures';
 test('checks and stages a signed update through desktop settings', async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     const requests: string[] = [];
+    let onClose: ((event: { event: string; id: number }) => Promise<void>) | undefined;
     const host = window as unknown as { isTauri: boolean; __TAURI_INTERNALS__: object };
     host.isTauri = true;
     host.__TAURI_INTERNALS__ = {
+      metadata: { currentWindow: { label: 'main' } },
+      /** Capture the window close listener so the fixture can run the actual close guard. */
+      transformCallback(callback: (event: { event: string; id: number }) => Promise<void>) {
+        onClose = callback;
+        return 1;
+      },
       /** Record native commands and return deterministic release, settings and fullscreen state. */
       async invoke(
         command: string,
-        args: { enabled?: boolean; settings?: { automaticUpdates: boolean } } = {},
+        args: {
+          enabled?: boolean;
+          restart?: boolean;
+          settings?: { automaticUpdates: boolean };
+        } = {},
       ) {
         requests.push(command);
         localStorage.setItem('fixture-update-requests', JSON.stringify(requests));
@@ -19,6 +30,12 @@ test('checks and stages a signed update through desktop settings', async ({ page
         if (command === 'get_fullscreen') return false;
         if (command === 'set_borderless') return args.enabled;
         if (command === 'check_update') return '1.2.3';
+        if (command === 'plugin:event|listen') return 1;
+        if (command === 'close_window')
+          await onClose?.({ event: 'tauri://close-requested', id: 1 });
+        if (command === 'install_update') {
+          localStorage.setItem('fixture-restart-update', String(args.restart));
+        }
         if (command === 'save_settings') {
           localStorage.setItem('fixture-auto-update', String(args.settings?.automaticUpdates));
         }
@@ -37,7 +54,8 @@ test('checks and stages a signed update through desktop settings', async ({ page
   await expect(page.getByText('Version 1.2.3 ist verfügbar.')).toBeVisible();
   await page.getByRole('button', { name: 'Update herunterladen' }).click();
   await expect(page.getByText('Version 1.2.3 ist zur Installation bereit.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Installieren und beenden' })).toBeEnabled();
+  const restart = page.getByRole('button', { name: 'Installieren und neu starten' });
+  await expect(restart).toBeEnabled();
   await automatic.check();
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('fixture-auto-update')))
@@ -57,4 +75,8 @@ test('checks and stages a signed update through desktop settings', async ({ page
       .evaluate((heading) => heading.closest('section')?.scrollIntoView({ block: 'center' }));
     await page.screenshot({ path: testInfo.outputPath(`updates-${width}.png`) });
   }
+  await restart.click();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('fixture-restart-update')))
+    .toBe('true');
 });

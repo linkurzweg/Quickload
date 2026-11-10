@@ -91,7 +91,7 @@ const german: Record<string, string> = {
   'Version {version} is available.': 'Version {version} ist verfügbar.',
   'Version {version} is ready to install.': 'Version {version} ist zur Installation bereit.',
   'Download update': 'Update herunterladen',
-  'Install and quit': 'Installieren und beenden',
+  'Install and restart': 'Installieren und neu starten',
   'The update could not be completed.': 'Das Update konnte nicht abgeschlossen werden.',
   'The update could not be installed.': 'Das Update konnte nicht installiert werden.',
   'This build uses manual or package-manager updates.':

@@ -8,6 +8,7 @@ frontend for display as a data URL in an image element. The WebView handles it i
 without inserting its markup into the document. The originals are left in place and the icons are
 independent of game artwork and general preference resets. Provider labels remain text-only when
 there is no usable SVG.
+The WebView uses the SVG's alpha as a mask painted in the current foreground color.
 
 Folder import runs only after a native directory selection. It checks up to 8,192 direct entries
 and validates up to eight filename-ranked SVGs per provider using the same size and XML checks as
@@ -19,6 +20,10 @@ Portable Windows and package-managed Linux builds open the fixed GitHub releases
 downloads. An opt-in check runs once per session at most, after startup and local scanning, with a
 one-day interval between automatic checks when webview storage is available. GitHub receives the
 usual HTTP request metadata for checks and package downloads.
+An explicit restart request goes through the close guard before installation. The Windows installer
+relaunches the updated executable when requested, and other platforms request a restart after the
+installation succeeds. The per-user NSIS update uses silent mode, while MSI keeps passive mode for
+installations that need elevation.
 
 The native bridge exposes separate check, stage and install operations without accepting URLs or
 paths from the frontend. Tauri verifies the package with the embedded public key. Staging keeps the

@@ -6,7 +6,7 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
 }, testInfo) => {
   await page.addInitScript((settings) => {
     const svg =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M0 0h24v24z"/></svg>';
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
     const host = window as unknown as { isTauri: boolean; __TAURI_INTERNALS__: object };
     host.isTauri = true;
     host.__TAURI_INTERNALS__ = {
@@ -65,6 +65,12 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
   await expect(label.locator('img, svg')).toHaveCount(0);
   await choose.click();
   await expect(label.locator('img')).toBeVisible();
+  const mask = label.locator('span[aria-hidden="true"]');
+  await expect(mask).toHaveCSS('mask-image', /^url\("data:image\/svg\+xml,/);
+  await expect(mask).toHaveCSS(
+    'background-color',
+    await label.evaluate((el) => getComputedStyle(el).color),
+  );
   await expect(remove).toBeVisible();
   const importFolder = page.getByRole('button', { name: 'SVG-Ordner importieren' });
   const gogLabel = page.locator('.provider-icon-row > span').filter({ hasText: /^GOG$/ });
@@ -87,6 +93,12 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
   }
   await page.reload();
   await expect(filter.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml,/);
+  const filterMask = filter.locator('span[aria-hidden="true"]');
+  await expect(filterMask).toHaveCSS('opacity', '1');
+  await expect(filterMask).toHaveCSS(
+    'background-color',
+    await filter.evaluate((el) => getComputedStyle(el).color),
+  );
   await settings.click();
   await expect(gogLabel.locator('img')).toBeVisible();
   await remove.click();

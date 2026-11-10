@@ -6,19 +6,24 @@
 </script>
 
 {#if image && failed !== image}
-  <img
-    src={image}
-    width="18"
-    height="18"
-    alt=""
-    aria-hidden="true"
-    onerror={() => (failed = image)}
-  />
+  <span class="icon" style:mask-image={`url("${image}")`} aria-hidden="true">
+    <img src={image} width="18" height="18" alt="" onerror={() => (failed = image)} />
+  </span>
 {/if}
 
 <style>
-  img {
-    object-fit: contain;
+  .icon {
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
+    background: currentColor;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+    forced-color-adjust: none;
+  }
+
+  img {
+    opacity: 0;
   }
 </style>

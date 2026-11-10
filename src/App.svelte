@@ -90,7 +90,7 @@
   let updateStatus = $state<'idle' | 'checking' | 'current' | 'downloading' | 'ready' | 'error'>(
     'idle',
   );
-  let installOnClose = false;
+  let restartAfterUpdate = false;
   const updateBusy = $derived(updateStatus === 'checking' || updateStatus === 'downloading');
   let settingsWriter: SettingsWriter | undefined;
   let feedback: ReturnType<typeof createSoundFeedback> | undefined;
@@ -297,25 +297,25 @@
     }
   }
 
-  /** Request a guarded close that installs the staged update even with automation disabled. */
-  async function installAndQuit() {
-    installOnClose = true;
+  /** Use the close guard to save preferences and install the staged update before relaunching. */
+  async function installAndRestart() {
+    restartAfterUpdate = true;
     try {
       await api.quit();
     } catch (cause) {
-      installOnClose = false;
+      restartAfterUpdate = false;
       error(cause);
     }
   }
 
   /** Save preferences before applying a staged update or allowing the window to close. */
   async function prepareClose(): Promise<boolean> {
-    const install = installOnClose || draft.automaticUpdates;
-    installOnClose = false;
+    const restart = restartAfterUpdate;
+    restartAfterUpdate = false;
     if (settingsWriter && !(await settingsWriter.flush())) return false;
-    if (install && updateStatus === 'ready') {
+    if ((restart || draft.automaticUpdates) && updateStatus === 'ready') {
       try {
-        await api.installUpdate();
+        await api.installUpdate(restart);
       } catch {
         updateStatus = 'error';
         toast(t('The update could not be installed.'));
@@ -1194,9 +1194,9 @@
                       class="text-button"
                       data-nav
                       aria-disabled={updateBusy}
-                      onclick={updateStatus === 'ready' ? installAndQuit : downloadUpdate}
+                      onclick={updateStatus === 'ready' ? installAndRestart : downloadUpdate}
                       >{t(
-                        updateStatus === 'ready' ? 'Install and quit' : 'Download update',
+                        updateStatus === 'ready' ? 'Install and restart' : 'Download update',
                       )}</button
                     >
                   {/if}
@@ -1471,7 +1471,7 @@
           <div class="filter-row">
             <div class="store-filters" aria-label={t('Filter by store')}>
               <button data-nav class:chosen={source === 'all'} onclick={() => selectStore('all')}
-                >{t('All games')} <span>{allCards.length}</span></button
+                >{t('All games')} <span class="store-count">{allCards.length}</span></button
               >{#each stores.filter( (s) => library.games.some((g) => g.store === s) ) as store}<button
                   data-nav
                   class:chosen={source === store}

@@ -1,5 +1,13 @@
 # Validation record — 10 November 2026
 
+## Update relaunch and provider icon color
+
+- `pnpm verify` passed on Windows. The provider and updater scenarios use mocked native IPC
+  in Playwright and verify foreground-color rendering and the restart request through the
+  close guard. Visually checked both settings sections at 390x844, 1440x1060, and
+  1920x1080 in TV mode.
+- Actual silent installation and native relaunch from the updated build were not exercised.
+
 ## Provider SVG folder import
 
 - `pnpm verify` passed on Windows. The native test covers filename ranking, aliases,

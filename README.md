@@ -78,6 +78,8 @@ the portable build, quit Quickload and replace the extracted application files, 
 
 Update-enabled Windows installers and macOS builds offer **Check for updates** in Settings. Enable
 **Automatically update Quickload** to download updates in the background and install them on quit.
+For an immediate update, download it in Settings and choose **Install and restart**. Updates to the
+per-user Windows EXE installation run silently. MSI updates use the Windows Installer progress UI.
 Portable Windows, Debian and RPM builds use manual or package-manager updates.
 Linux releases currently include DEB and RPM packages. AppImage downloads are pending verification
 of their bundled license notices and corresponding sources.

@@ -697,7 +697,7 @@ nav button:hover:not(.active) {
   color: white;
   background: #ffffff0d;
 }
-.store-filters button > span:not(.store-marker) {
+.store-filters .store-count {
   font-size: 10px;
   opacity: 0.6;
 }

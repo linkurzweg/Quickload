@@ -70,10 +70,28 @@ pub async fn check_update(
     if let Some(update) = pending.as_ref().filter(|update| update.package.is_some()) {
         return Ok(Some(update.release.version.clone()));
     }
-    let release = app
-        .updater_builder()
-        .timeout(Duration::from_secs(15))
-        .restart_after_install(false)
+    let builder = app.updater_builder().timeout(Duration::from_secs(15));
+    // Keep passive mode for installations that may need elevation.
+    #[cfg(windows)]
+    let builder = {
+        use tauri::utils::{
+            config::{BundleType, NSISInstallerMode},
+            platform::bundle_type,
+        };
+        let per_user = app
+            .config()
+            .bundle
+            .windows
+            .nsis
+            .as_ref()
+            .is_none_or(|nsis| nsis.install_mode == NSISInstallerMode::CurrentUser);
+        if per_user && bundle_type() == Some(BundleType::Nsis) {
+            builder.installer_arg("/S")
+        } else {
+            builder
+        }
+    };
+    let release = builder
         .build()
         .map_err(|error| error.to_string())?
         .check()
@@ -125,22 +143,38 @@ pub async fn stage_update(updates: State<'_, Updates>) -> Result<(), String> {
     Ok(())
 }
 
-/// Install a staged update off the UI thread after the window close guard has saved preferences.
+/// Install a staged update after the close guard saves preferences. Relaunch only when requested.
+/// Keep the staged package available if reading or installing it fails.
 #[tauri::command]
-pub async fn install_update(updates: State<'_, Updates>) -> Result<(), String> {
+pub async fn install_update(
+    app: AppHandle,
+    updates: State<'_, Updates>,
+    restart: bool,
+) -> Result<(), String> {
     let mut pending = updates.lock()?;
-    let update = pending.as_mut().ok_or("Check for updates first.")?;
-    let mut package = update.package.take().ok_or("Download the update first.")?;
-    let release = update.release.clone();
+    let update = pending.as_ref().ok_or("Check for updates first.")?;
+    let mut package = update
+        .package
+        .as_ref()
+        .ok_or("Download the update first.")?
+        .try_clone()
+        .map_err(|error| error.to_string())?;
+    let release = update.release.clone().restart_after_install(restart);
     async_runtime::spawn_blocking(move || {
         let mut bytes = Vec::new();
         package
-            .read_to_end(&mut bytes)
+            .rewind()
+            .and_then(|()| package.read_to_end(&mut bytes))
             .map_err(|error| error.to_string())?;
         release.install(bytes).map_err(|error| error.to_string())
     })
     .await
-    .map_err(|error| error.to_string())?
+    .map_err(|error| error.to_string())??;
+    *pending = None;
+    if !cfg!(windows) && restart {
+        app.request_restart();
+    }
+    Ok(())
 }
 
 /// Open the fixed GitHub downloads page in the system browser, returning launch errors.
