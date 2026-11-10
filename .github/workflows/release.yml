@@ -46,7 +46,7 @@ jobs:
             targets: x86_64-pc-windows-msvc
           - os: ubuntu-24.04
             platform: linux-x64
-            args: --bundles deb,appimage,rpm
+            args: --bundles deb,rpm
             targets: x86_64-unknown-linux-gnu
           - os: macos-latest
             platform: macos-universal
@@ -56,7 +56,6 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       CARGO_TARGET_DIR: ${{ github.workspace }}/target
-      APPIMAGE_EXTRACT_AND_RUN: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -138,12 +137,10 @@ jobs:
             target/**/bundle/dmg/*.dmg
             target/**/bundle/deb/*.deb
             target/**/bundle/rpm/*.rpm
-            target/**/bundle/appimage/*.AppImage
             target/**/bundle/nsis/*.exe.sig
             target/**/bundle/msi/*.msi.sig
             target/**/bundle/macos/*.app.tar.gz
             target/**/bundle/macos/*.app.tar.gz.sig
-            target/**/bundle/appimage/*.AppImage.sig
             target/release/*_windows-x64_portable.zip
   publish:
     needs: [prepare, build]
@@ -170,7 +167,7 @@ jobs:
         run: |
           mkdir downloads
           find artifacts -type f -exec cp {} downloads/ \;
-          test "$(find downloads -type f ! -name '*.sig' ! -name '*.tar.gz' | wc -l)" -eq 7
+          test "$(find downloads -type f ! -name '*.sig' ! -name '*.tar.gz' | wc -l)" -eq 6
           if [ -n "$QUICKLOAD_UPDATER_PUBLIC_KEY" ]; then
             node scripts/update-manifest.mjs "$RELEASE_TAG" downloads
           fi
@@ -184,7 +181,7 @@ jobs:
             exit 0
           fi
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release create "$RELEASE_TAG" --target "$RELEASE_SHA" --title "Quickload $RELEASE_TAG" --generate-notes --draft
+            gh release create "$RELEASE_TAG" --target "$RELEASE_SHA" --title "Quickload $RELEASE_TAG" --generate-notes --notes "Linux packages are available as DEB and RPM. AppImage distribution is pending license and source packaging verification." --draft
           fi
           gh release upload "$RELEASE_TAG" downloads/* --clobber
           gh release edit "$RELEASE_TAG" --draft=false --latest

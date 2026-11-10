@@ -1,5 +1,14 @@
 # Validation record — 10 November 2026
 
+## Public release fallback — 10 November 2026
+
+- The v0.2.1 release workflow builds DEB and RPM for Linux. The AppImage audit used a
+  filename-based package mapping and did not establish an exact source set for the final
+  signed binary. The workflow omits AppImage until that verification is available.
+- `pnpm check` and all 40 unit tests passed on Windows. The updater manifest tests cover
+  releases with and without AppImage and reject missing mandatory assets and signatures.
+  The local release planner selected `v0.2.1`.
+
 ## Text-only provider labels and AppImage follow-up — 10 November 2026
 
 - `pnpm check`, the frontend production build, and all 58 Playwright tests passed on Windows.

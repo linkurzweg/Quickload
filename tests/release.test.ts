@@ -69,6 +69,16 @@ describe('signed updater feed', () => {
     expect(Object.keys(manifest.platforms)).toHaveLength(5);
   });
 
+  it('omits the Linux updater entry when the release only includes DEB and RPM', () => {
+    const manifest = createUpdateManifest(
+      'v1.2.3',
+      assets.filter((file) => !file.endsWith('.AppImage')),
+      () => 'signed',
+    );
+    expect(manifest.platforms).not.toHaveProperty('linux-x86_64-appimage');
+    expect(Object.keys(manifest.platforms)).toHaveLength(4);
+  });
+
   it('refuses incomplete releases', () => {
     expect(() => createUpdateManifest('v1.2.3', assets.slice(0, 3), () => 'signed')).toThrow(
       'Expected one .app.tar.gz updater asset.',

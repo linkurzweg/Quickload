@@ -76,9 +76,11 @@ The alpha is unsigned. A `quickload.portable` file enables writable `quickload-d
 the executable. Without that marker, the app uses the platform application-data directory. To update
 the portable build, quit Quickload and replace the extracted application files, keeping `quickload-data`.
 
-Signed installer, macOS app and AppImage builds offer **Check for updates** in Settings. Enable
+Update-enabled Windows installers and macOS builds offer **Check for updates** in Settings. Enable
 **Automatically update Quickload** to download updates in the background and install them on quit.
 Portable Windows, Debian and RPM builds use manual or package-manager updates.
+Linux releases currently include DEB and RPM packages. AppImage downloads are pending verification
+of their bundled license notices and corresponding sources.
 
 ## Store integrations
 
