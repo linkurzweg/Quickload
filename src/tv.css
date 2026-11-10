@@ -1,0 +1,62 @@
+/* TV mode keeps the same landscape composition and increases readable controls. */
+.app-shell.tv-mode {
+  --footer-height: 76px;
+}
+.app-shell.tv-mode .hero {
+  height: 57vh;
+  min-height: 490px;
+  max-height: 750px;
+}
+.app-shell.tv-mode .hero-content {
+  padding-bottom: 55px;
+}
+.app-shell.tv-mode nav button {
+  font-size: 17px;
+  min-width: 140px;
+}
+.app-shell.tv-mode .hero-description {
+  font-size: 21px;
+}
+.app-shell.tv-mode .hero-meta {
+  font-size: 15px;
+}
+.app-shell.tv-mode .primary,
+.app-shell.tv-mode .secondary {
+  min-height: 54px;
+  font-size: 18px;
+}
+.app-shell.tv-mode .hero-more {
+  font-size: 18px;
+}
+.app-shell.tv-mode .library-heading h1 {
+  font-size: 32px;
+}
+.app-shell.tv-mode .store-filters button,
+.app-shell.tv-mode .search-box input {
+  font-size: 15px;
+}
+.app-shell.tv-mode .card-title {
+  font-size: 18px;
+}
+.app-shell.tv-mode .card-subtitle {
+  font-size: 14px;
+}
+.app-shell.tv-mode .control-hints > span,
+.app-shell.tv-mode .controller-status {
+  font-size: 14px;
+}
+.app-shell.tv-mode .glyph {
+  width: 28px;
+  height: 28px;
+}
+.app-shell.tv-mode .glyph.shoulder {
+  width: 42px;
+}
+.app-shell.tv-mode .library-status,
+.app-shell.tv-mode .help-text,
+.app-shell.tv-mode .settings-card label {
+  font-size: 14px;
+}
+.app-shell.tv-mode footer {
+  min-height: 76px;
+}

@@ -1,0 +1,6 @@
+{
+  "identifier": "main-capability",
+  "description": "The main local window may use the file picker and finish closing after pending settings are saved.",
+  "windows": ["main"],
+  "permissions": ["core:default", "core:window:allow-destroy", "dialog:allow-open"]
+}

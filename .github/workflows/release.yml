@@ -1,0 +1,190 @@
+name: Release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && vars.QUICKLOAD_PUBLISH_RELEASES == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.tools/browsers
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      release: ${{ steps.plan.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - id: plan
+        run: node scripts/release.mjs
+  build:
+    needs: prepare
+    if: needs.prepare.outputs.release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+            args: --bundles nsis,msi
+            targets: x86_64-pc-windows-msvc
+          - os: ubuntu-24.04
+            platform: linux-x64
+            args: --bundles deb,appimage,rpm
+            targets: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            platform: macos-universal
+            args: --target universal-apple-darwin --bundles app,dmg
+            targets: aarch64-apple-darwin,x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target
+      APPIMAGE_EXTRACT_AND_RUN: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+      - uses: pnpm/action-setup@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.99.1'
+          targets: ${{ matrix.targets }}
+          components: rustfmt,clippy
+      - uses: Swatinem/rust-cache@v2
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf rpm
+      - run: pnpm install --frozen-lockfile
+      - run: cargo fmt --all -- --check
+      - run: cargo test --workspace --locked
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: node scripts/release.mjs apply "${{ env.RELEASE_VERSION }}"
+      - run: cargo install cargo-about --version 0.9.3 --locked --features cli
+      - name: Collect distribution notices
+        shell: pwsh
+        run: |
+          $notices = New-Item -ItemType Directory -Path (Join-Path $env:CARGO_TARGET_DIR 'release-notices') -Force
+          Copy-Item LICENSE (Join-Path $notices 'LICENSE.txt')
+          Copy-Item THIRD_PARTY.md $notices
+          if ($IsWindows) {
+            Copy-Item 'licenses/WebView2-SDK*.txt' $notices
+          }
+          cargo about generate --fail --locked --features custom-protocol -o (Join-Path $notices 'Rust.html') licenses/rust-notices.hbs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node scripts/frontend-notices.mjs (Join-Path $notices 'Frontend.txt')
+          exit $LASTEXITCODE
+      - name: Build release bundles
+        shell: pwsh
+        env:
+          QUICKLOAD_UPDATER_PUBLIC_KEY: ${{ vars.QUICKLOAD_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          $bundleArgs = '${{ matrix.args }}'.Split(' ')
+          $resources = @{}
+          Get-ChildItem -LiteralPath (Join-Path $env:CARGO_TARGET_DIR 'release-notices') -File | ForEach-Object {
+            $resources[$_.FullName] = "licenses/$($_.Name)"
+          }
+          $config = @{ bundle = @{ resources = $resources } }
+          if ($env:QUICKLOAD_UPDATER_PUBLIC_KEY) {
+            if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Missing Tauri updater signing key.' }
+            $config.bundle.createUpdaterArtifacts = $true
+            $config.plugins = @{
+              updater = @{
+                pubkey = $env:QUICKLOAD_UPDATER_PUBLIC_KEY
+                requireSignedVersion = $true
+                endpoints = @('https://github.com/linkurzweg/Quickload/releases/latest/download/latest.json')
+              }
+            }
+          }
+          $configPath = Join-Path $env:RUNNER_TEMP 'quickload-release.json'
+          $config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $configPath -Encoding utf8
+          pnpm desktop:build @bundleArgs --config $configPath
+          exit $LASTEXITCODE
+      - name: Package Windows portable build
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $release = Join-Path $env:CARGO_TARGET_DIR 'release'
+          $portable = New-Item -ItemType Directory -Path (Join-Path $env:RUNNER_TEMP 'quickload-portable')
+          Copy-Item -LiteralPath (Join-Path $release 'quickload.exe') -Destination (Join-Path $portable 'Quickload.exe')
+          Copy-Item -LiteralPath (Join-Path $env:CARGO_TARGET_DIR 'release-notices') -Destination (Join-Path $portable 'licenses') -Recurse
+          New-Item -ItemType File -Path (Join-Path $portable 'quickload.portable') | Out-Null
+          Compress-Archive -Path (Join-Path $portable '*') -DestinationPath (Join-Path $release "Quickload_${env:RELEASE_VERSION}_windows-x64_portable.zip")
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          if-no-files-found: error
+          path: |
+            target/**/bundle/nsis/*.exe
+            target/**/bundle/msi/*.msi
+            target/**/bundle/dmg/*.dmg
+            target/**/bundle/deb/*.deb
+            target/**/bundle/rpm/*.rpm
+            target/**/bundle/appimage/*.AppImage
+            target/**/bundle/nsis/*.exe.sig
+            target/**/bundle/msi/*.msi.sig
+            target/**/bundle/macos/*.app.tar.gz
+            target/**/bundle/macos/*.app.tar.gz.sig
+            target/**/bundle/appimage/*.AppImage.sig
+            target/release/*_windows-x64_portable.zip
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: artifacts
+          merge-multiple: true
+      - name: Publish complete platform downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_SHA: ${{ github.sha }}
+          QUICKLOAD_UPDATER_PUBLIC_KEY: ${{ vars.QUICKLOAD_UPDATER_PUBLIC_KEY }}
+        shell: bash
+        run: |
+          mkdir downloads
+          find artifacts -type f -exec cp {} downloads/ \;
+          test "$(find downloads -type f ! -name '*.sig' ! -name '*.tar.gz' | wc -l)" -eq 7
+          if [ -n "$QUICKLOAD_UPDATER_PUBLIC_KEY" ]; then
+            node scripts/update-manifest.mjs "$RELEASE_TAG" downloads
+          fi
+          (cd downloads && sha256sum * > SHA256SUMS.txt)
+          git fetch origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG" 2>/dev/null || true
+          if git rev-parse "$RELEASE_TAG^{commit}" >/dev/null 2>&1; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_SHA"
+          fi
+          if gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' 2>/dev/null | grep -qx false; then
+            echo "Release is already published; keeping immutable downloads."
+            exit 0
+          fi
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --target "$RELEASE_SHA" --title "Quickload $RELEASE_TAG" --generate-notes --draft
+          fi
+          gh release upload "$RELEASE_TAG" downloads/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest

@@ -1,0 +1,34 @@
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <title>Quickload Rust dependency notices</title>
+  </head>
+  <body>
+    <h1>Quickload Rust dependency notices</h1>
+    <p>
+      This inventory covers the release target matrix. Source links point to exact published crate
+      versions, including components distributed under MPL-2.0.
+    </p>
+    {{#each licenses}}
+      <section>
+        <h2>{{name}} ({{id}})</h2>
+        <ul>
+          {{#each used_by}}
+            <li>
+              {{#if crate.source}}
+                <a href='https://crates.io/crates/{{crate.name}}/{{crate.version}}'>
+                  {{crate.name}}
+                  {{crate.version}}
+                </a>
+              {{else}}
+                {{crate.name}}
+                {{crate.version}}
+              {{/if}}
+            </li>
+          {{/each}}
+        </ul>
+        <pre>{{text}}</pre>
+      </section>
+    {{/each}}
+  </body>
+</html>

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+src-tauri/gen/
+test-results/
+playwright-report/
+.DS_Store
+*.log
+.tools/
+.dev-data/
+docs/screenshots/
+.vitest/
+.vite/
+.pnpm-store/

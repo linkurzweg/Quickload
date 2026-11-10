@@ -1,0 +1,15 @@
+name: Conventional PR title
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  title:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate squash commit title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          node -e 'if (!/^(feat|fix|perf|refactor|docs|test|build|ci|chore|style|revert)(\([^)\r\n]+\))?!?: .+/.test(process.env.PR_TITLE)) { console.error("Use a Conventional Commit title, e.g. feat(library): add provider"); process.exit(1); }'

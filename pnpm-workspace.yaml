@@ -1,0 +1,17 @@
+allowBuilds:
+  esbuild@0.28.2: true
+strictPeerDependencies: true
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
+minimumReleaseAgeExclude:
+  - '@lucide/svelte@1.70.0'
+overrides:
+  vite@*: 'catalog:'
+  vitest@*: 5.1.0
+
+# The alias reports the Vite+ release version; its embedded Vite is 8.3.5.
+# Accept only this pinned alias version rather than suppressing all Vite peers.
+peerDependencyRules:
+  allowedVersions:
+    vite: '1.5.0'

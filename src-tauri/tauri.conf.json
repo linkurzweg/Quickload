@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Quickload",
+  "version": "0.2.1",
+  "identifier": "app.quickload.launcher",
+  "build": {
+    "beforeDevCommand": "node scripts/dev.mjs ui",
+    "devUrl": "http://127.0.0.1:1427",
+    "beforeBuildCommand": "node node_modules/vite-plus/bin/vp build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Quickload",
+        "width": 1440,
+        "height": 960,
+        "minWidth": 960,
+        "minHeight": 640,
+        "center": true,
+        "visible": false,
+        "backgroundColor": "#101114",
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      },
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost https://asset.localhost https://cdn.cloudflare.steamstatic.com; connect-src ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "shortDescription": "A quiet home for your games",
+    "category": "Entertainment"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": ""
+    }
+  }
+}
