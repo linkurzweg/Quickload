@@ -1,4 +1,22 @@
-# Validation record — 9 November 2026
+# Validation record — 10 November 2026
+
+## Public v0.2.1 release preparation — 10 November 2026
+
+- The public CI run [42795870937](https://github.com/linkurzweg/Quickload/actions/runs/42795870937)
+  passed frontend and desktop checks on Windows, macOS and Linux.
+- A private Ubuntu 24.04 audit built and extracted an unsigned x86-64 v0.2.1 AppImage. Matching
+  installed package ownership by filename associated 216 packaged files with 96 Ubuntu source
+  package versions. The other files considered were Quickload, two launcher files and three
+  generated caches. This was a candidate mapping and did not compare ELF build IDs.
+- The current Ubuntu source index provided checksums for 312 source files across 95 packages.
+  All 312 downloaded files matched the indexed size and checksum. The missing PCRE2 version
+  (`10.42-4ubuntu2.1`) was recovered from the official Ubuntu snapshot at
+  `20261101T120000Z`. Its source archive and packaging patch matched the SHA-256 checksums and
+  sizes in the snapshot's source descriptor.
+- The AppImage contained 111 package copyright files. Of those, 81 referenced
+  `/usr/share/common-licenses/`, which was absent from the package. The embedded AppImage
+  runtime, launcher provenance, and notice and source delivery with the signed build remain
+  open. The public release workflow was kept gated.
 
 ## Custom provider icons — 10 November 2026
 
