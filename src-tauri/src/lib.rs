@@ -8,6 +8,7 @@ use std::{
 };
 use tauri::{Manager, State};
 mod artwork;
+mod power;
 mod preferences;
 mod provider_icons;
 mod shortcut;
@@ -310,7 +311,12 @@ fn apply_borderless(window: &tauri::WebviewWindow, enabled: bool) -> Result<(), 
 
 #[tauri::command]
 /// Read the actual fullscreen state of `window`, including the initial native startup preference.
-fn get_fullscreen(window: tauri::WebviewWindow, _state: State<AppState>) -> Result<bool, String> {
+fn get_fullscreen(window: tauri::WebviewWindow, state: State<AppState>) -> Result<bool, String> {
+    is_fullscreen(&window, &state)
+}
+
+/// Read fullscreen state from the native window or the macOS borderless setting.
+fn is_fullscreen(window: &tauri::WebviewWindow, _state: &AppState) -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
         let _ = window;
@@ -420,7 +426,8 @@ pub fn run() {
             updates::stage_update,
             updates::install_update,
             updates::open_release_downloads,
-            close_window
+            close_window,
+            power::system_power
         ])
         .run(tauri::generate_context!())
         .expect("Quickload konnte nicht gestartet werden");

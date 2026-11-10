@@ -275,6 +275,8 @@ nav button:hover:not(.active) {
   opacity: 0.65;
 }
 .header-actions {
+  --action-gap: 10px;
+  --action-width: 44px;
   padding: 5px 8px;
   border: 1px solid transparent;
   grid-column: 3;
@@ -282,13 +284,37 @@ nav button:hover:not(.active) {
   display: flex;
   align-items: center;
   justify-self: end;
-  gap: 10px;
+  gap: var(--action-gap);
+}
+.header-actions.with-shortcuts {
+  --action-width: 68px;
 }
 .header-actions.with-shortcuts .icon-button {
-  width: 68px;
+  width: var(--action-width);
   gap: 8px;
   padding: 0 10px;
   border-radius: 22px;
+}
+.power-slot {
+  display: flex;
+  justify-content: flex-end;
+  width: 0;
+  margin-inline-end: calc(-1 * var(--action-gap));
+  opacity: 0;
+  transition:
+    width 180ms ease,
+    margin-inline-end 180ms ease,
+    opacity 120ms ease;
+}
+.power-slot.expanded {
+  width: var(--action-width);
+  margin-inline-end: 0;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .power-slot {
+    transition: none;
+  }
 }
 .header-shortcut {
   display: inline-flex;
@@ -1707,7 +1733,7 @@ dialog[open] {
     display: none;
   }
   .header-actions {
-    gap: 2px;
+    --action-gap: 2px;
   }
   .hero {
     height: 580px;
@@ -2019,14 +2045,20 @@ dialog.quit-modal[open] {
   max-width: 480px;
   padding: 36px;
 }
-.quit-actions .glyph {
-  color: currentColor;
-}
 .quit-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 14px;
   margin-top: 28px;
+}
+.power-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+.power-options button {
+  justify-content: flex-start;
 }
 @media (min-width: 501px) and (max-width: 1200px) {
   .brand > span {
@@ -2047,8 +2079,10 @@ dialog.quit-modal[open] {
     grid-column: 2;
     margin: 0;
   }
+  .header-actions.with-shortcuts {
+    --action-width: 44px;
+  }
   .header-actions.with-shortcuts .icon-button {
-    width: 44px;
     padding: 0 6px;
     gap: 3px;
   }

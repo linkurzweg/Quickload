@@ -12,10 +12,20 @@ const german: Record<string, string> = {
   'Clear search': 'Suche leeren',
   Cancel: 'Abbrechen',
   'Quit Quickload': 'Quickload beenden',
-  'Quit Quickload?': 'Quickload beenden?',
-  Quit: 'Beenden',
-  'Your changes are saved before the app closes.':
-    'Deine Änderungen werden vor dem Beenden gespeichert.',
+  'Power menu': 'Power-Menü',
+  'Shut down system': 'System herunterfahren',
+  'Restart system': 'System neu starten',
+  'Shut down the system?': 'System herunterfahren?',
+  'Restart the system?': 'System neu starten?',
+  'Save your work in other apps before continuing.':
+    'Speichere deine Arbeit in anderen Apps, bevor du fortfährst.',
+  'System power request sent.': 'Systemaktion angefordert.',
+  'System power actions are available in fullscreen only.':
+    'Systemaktionen sind nur im Vollbild verfügbar.',
+  'System power actions are unavailable on this platform.':
+    'Systemaktionen sind auf dieser Plattform nicht verfügbar.',
+  'The system power request could not be completed.':
+    'Die Systemaktion konnte nicht ausgeführt werden.',
   'Closing is available in the desktop app.': 'Beenden ist in der Desktop-App verfügbar.',
   'Game process detected': 'Spielprozess erkannt',
   'Game launch failed': 'Spielstart fehlgeschlagen',

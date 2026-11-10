@@ -24,6 +24,10 @@ function persist() {
   return structuredClone(preview);
 }
 export const api = {
+  /** Request a confirmed local system action through the fullscreen-only native command. */
+  async systemPower(action: 'shutdown' | 'restart'): Promise<void> {
+    await invoke('system_power', { action });
+  },
   /** Request native closure through the pending-preference close guard; reject browser previews. */
   async quit(): Promise<void> {
     if (!native) throw new Error('Closing is available in the desktop app.');

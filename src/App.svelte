@@ -23,6 +23,8 @@
     CircleAlert,
     ImagePlus,
     Power,
+    RotateCw,
+    LogOut,
     Download,
   } from '@lucide/svelte';
   import GameCard from './components/GameCard.svelte';
@@ -128,6 +130,8 @@
     'manual',
   ];
   let quitOpen = $state(false);
+  let powerAction = $state<'shutdown' | 'restart' | null>(null);
+  let powerBusy = $state(false);
   const family = $derived(
     draft.controller === 'auto' ? (controllerFamily ?? 'xbox') : draft.controller,
   );
@@ -446,10 +450,14 @@
   /** Toggle borderless desktop fullscreen and retain the previous UI state if the native request fails. */
 
   async function toggleFullscreen() {
+    if (quitOpen) return;
     try {
+      const powerHadFocus = document.activeElement?.closest('.power-slot');
       fullscreen = await api.fullscreen(!fullscreen);
       feedback?.play(fullscreen ? 'expand' : 'collapse');
       await tick();
+      if (!fullscreen && powerHadFocus)
+        document.querySelector<HTMLElement>('.header-actions [data-fullscreen]')?.focus();
       if (!draft.reducedMotion && !matchMedia('(prefers-reduced-motion: reduce)').matches)
         document.querySelector('main')?.animate(
           [
@@ -508,10 +516,12 @@
   /** Close either dialog and restore focus to its triggering control after the DOM update. */
 
   function closeModal() {
+    if (powerBusy) return;
     const previous = detailId;
     detailId = null;
     addOpen = false;
     quitOpen = false;
+    powerAction = null;
     void tick().then(() => {
       const fallback = previous
         ? document.querySelector<HTMLElement>(`[data-game="${CSS.escape(previous)}"]`)
@@ -519,12 +529,41 @@
       (returnFocus?.isConnected ? returnFocus : (fallback ?? searchInput))?.focus();
     });
   }
-  /** Open an exit confirmation, initially focusing Cancel for safe controller navigation. */
-  async function openQuit() {
+  /** Open the fullscreen power menu and focus Cancel before accepting another input. */
+  async function openPowerMenu() {
+    if (!native || !fullscreen) return;
     returnFocus = document.activeElement as HTMLElement;
     quitOpen = true;
     await tick();
     document.querySelector<HTMLElement>('.quit-cancel')?.focus();
+  }
+  /** Show a confirmation for the selected system action and move focus to Cancel. */
+  async function confirmPower(action: 'shutdown' | 'restart') {
+    powerAction = action;
+    await tick();
+    document.querySelector<HTMLElement>('.quit-cancel')?.focus();
+  }
+  /** Save Quickload preferences and send the confirmed OS request; keep the dialog open on failure. */
+  async function applyPower() {
+    if (!powerAction || powerBusy || !fullscreen) return;
+    const action = powerAction;
+    powerBusy = true;
+    try {
+      if (settingsWriter && !(await settingsWriter.flush())) {
+        powerBusy = false;
+        closeModal();
+        page = 'settings';
+        return;
+      }
+      await api.systemPower(action);
+      powerBusy = false;
+      closeModal();
+      toast(t('System power request sent.'));
+    } catch (cause) {
+      error(cause);
+    } finally {
+      powerBusy = false;
+    }
   }
   /** Flush preferences before native closure; retain the window and report save or close errors. */
   async function quit() {
@@ -914,13 +953,23 @@
         class:with-shortcuts={usingController && (draft.controllerHints ?? true)}
       >
         {#if !native}<span class="preview-badge">{t('DESIGN PREVIEW')}</span>{/if}
-        {#if native}<button
-            data-nav
-            class="icon-button"
-            title={t('Quit Quickload')}
-            aria-label={t('Quit Quickload')}
-            onclick={openQuit}><Power size={19} /></button
-          >{/if}
+        {#if native}
+          <div
+            class="power-slot"
+            class:expanded={fullscreen}
+            inert={!fullscreen}
+            aria-hidden={!fullscreen}
+          >
+            <button
+              data-nav
+              class="icon-button"
+              title={t('Power menu')}
+              aria-label={t('Power menu')}
+              aria-haspopup="dialog"
+              onclick={openPowerMenu}><Power size={19} /></button
+            >
+          </div>
+        {/if}
         <button
           data-nav
           class="icon-button"
@@ -1641,14 +1690,39 @@
     <div class="modal-backdrop">
       <dialog open data-modal aria-labelledby="quit-title" class="quit-modal">
         <span class="modal-symbol"><Power size={25} /></span>
-        <h1 id="quit-title">{t('Quit Quickload?')}</h1>
-        <p class="page-description">{t('Your changes are saved before the app closes.')}</p>
-        <div class="quit-actions">
-          <button data-nav class="secondary quit-cancel" onclick={closeModal}>{t('Cancel')}</button>
-          <button data-nav class="primary" onclick={quit}
-            ><Glyph button="a" {family} />{t('Quit')}</button
-          >
-        </div>
+        {#if powerAction}
+          <h1 id="quit-title">
+            {t(powerAction === 'shutdown' ? 'Shut down the system?' : 'Restart the system?')}
+          </h1>
+          <p class="page-description">{t('Save your work in other apps before continuing.')}</p>
+          <div class="quit-actions">
+            <button
+              data-nav
+              class="secondary quit-cancel"
+              aria-disabled={powerBusy}
+              onclick={closeModal}>{t('Cancel')}</button
+            >
+            <button data-nav class="primary" aria-disabled={powerBusy} onclick={applyPower}>
+              {t(powerAction === 'shutdown' ? 'Shut down system' : 'Restart system')}
+            </button>
+          </div>
+        {:else}
+          <h1 id="quit-title">{t('Power menu')}</h1>
+          <div class="power-options">
+            <button data-nav class="secondary" onclick={quit}
+              ><LogOut size={18} aria-hidden="true" />{t('Quit Quickload')}</button
+            >
+            <button data-nav class="secondary" onclick={() => void confirmPower('restart')}
+              ><RotateCw size={18} aria-hidden="true" />{t('Restart system')}</button
+            >
+            <button data-nav class="secondary" onclick={() => void confirmPower('shutdown')}
+              ><Power size={18} aria-hidden="true" />{t('Shut down system')}</button
+            >
+            <button data-nav class="secondary quit-cancel" onclick={closeModal}
+              >{t('Cancel')}</button
+            >
+          </div>
+        {/if}
       </dialog>
     </div>
   {/if}

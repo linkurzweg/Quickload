@@ -84,6 +84,9 @@ Portable Windows, Debian and RPM builds use manual or package-manager updates.
 Linux releases currently include DEB and RPM packages. AppImage downloads are pending verification
 of their bundled license notices and corresponding sources.
 
+In fullscreen, the power menu can quit Quickload, restart the system, or shut it down. System
+actions require confirmation and use the operating system's normal permissions and prompts.
+
 ## Store integrations
 
 | Provider            | Windows      | macOS                   | Linux                   | Implementation and limits                                                                                                                |

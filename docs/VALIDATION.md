@@ -1,5 +1,16 @@
 # Validation record — 10 November 2026
 
+## Fullscreen power menu
+
+- `pnpm verify` and all 59 Playwright tests passed on Windows. The browser tests mocked
+  system power requests and checked confirmation, cancellation, controller navigation,
+  preference flushing, and header width transitions in both directions. Reduced-motion
+  settings disable the transition.
+- Visually checked the menu at 390x844, 1440x1060, and 1920x1080 in TV mode. Reviewed the
+  restart confirmation at 1920x1080.
+- No operating system was shut down or restarted during validation. Native macOS and
+  Linux behavior was not exercised.
+
 ## Update relaunch and provider icon color
 
 - `pnpm verify` passed on Windows. The provider and updater scenarios use mocked native IPC

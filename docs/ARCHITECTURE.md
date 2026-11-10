@@ -25,6 +25,12 @@ relaunches the updated executable when requested, and other platforms request a 
 installation succeeds. The per-user NSIS update uses silent mode, while MSI keeps passive mode for
 installations that need elevation.
 
+The fullscreen power menu saves pending preferences before sending a confirmed shutdown or restart
+request. Native IPC accepts only these two actions from the fullscreen main window. It invokes fixed
+Windows, systemd Linux, or macOS system utilities off the UI thread with their normal permissions.
+Windows requests a normal shutdown without forcing applications closed, Linux respects inhibitors,
+and macOS may ask for permission to automate System Events.
+
 The native bridge exposes separate check, stage and install operations without accepting URLs or
 paths from the frontend. Tauri verifies the package with the embedded public key. Staging keeps the
 verified bytes in a temporary file to release the download buffer between staging and installation.
