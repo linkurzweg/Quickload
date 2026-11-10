@@ -1,5 +1,14 @@
 # Validation record — 10 November 2026
 
+## Provider SVG folder import
+
+- `pnpm verify` passed on Windows. The native test covers filename ranking, aliases,
+  invalid SVG fallback, skipping subfolders, preserving existing icons, and repeat imports.
+- All 58 Playwright tests passed against the production preview. The provider scenario mocks
+  native IPC and covers directory selection, merging saved icons, and persistence on reload.
+  Visually checked the settings at 390x844, 1440x1060, and 1920x1080 in TV mode.
+- The native file picker and macOS/Linux execution were not exercised.
+
 ## Public release fallback — 10 November 2026
 
 - The v0.2.1 release workflow builds DEB and RPM for Linux. The AppImage audit used a

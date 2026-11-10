@@ -405,6 +405,7 @@ pub fn run() {
             import_artwork,
             provider_icons::get_provider_icons,
             provider_icons::set_provider_icon,
+            provider_icons::import_provider_icons,
             scan_library,
             set_favorite,
             save_settings,

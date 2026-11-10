@@ -197,6 +197,11 @@ to show only the provider name. [Simple Icons](https://simpleicons.org/) is one 
 Check the [individual icon and trademark terms](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md)
 before using or redistributing a logo.
 
+Use **Import SVG folder** to fill empty icon slots in one pass. Quickload matches filenames such
+as `steam.svg`, `Epic Games.svg`, and `battledotnet.svg`, ignores case and punctuation, and
+prefers exact names over variants such as `Steam-dark.svg`. The import examines only the selected
+folder and keeps existing icon choices.
+
 ## License
 
 Quickload is available under the [MIT License](LICENSE). Forks and redistribution are welcome.

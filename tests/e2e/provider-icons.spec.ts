@@ -11,7 +11,15 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
     host.isTauri = true;
     host.__TAURI_INTERNALS__ = {
       /** Simulate the picker and native persistence without touching the host profile. */
-      invoke(command: string, args: { store?: string; path?: string; enabled?: boolean } = {}) {
+      invoke(
+        command: string,
+        args: {
+          store?: string;
+          path?: string;
+          enabled?: boolean;
+          options?: { directory?: boolean };
+        } = {},
+      ) {
         if (command === 'get_library') {
           return {
             settings: { ...settings, artwork: false, startupScan: false, reducedMotion: true },
@@ -19,11 +27,20 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
             lastScan: null,
           };
         }
-        if (command === 'plugin:dialog|open') return 'C:/fixtures/store.svg';
+        if (command === 'plugin:dialog|open') {
+          return args.options?.directory ? 'C:/fixtures/icons' : 'C:/fixtures/store.svg';
+        }
         if (command === 'set_borderless') return args.enabled;
         if (command === 'get_provider_icons') {
           const saved = localStorage.getItem('fixture-provider-icon');
-          return saved ? { steam: saved } : {};
+          return {
+            ...(saved ? { steam: saved } : {}),
+            ...(localStorage.getItem('fixture-folder-import') ? { gog: svg } : {}),
+          };
+        }
+        if (command === 'import_provider_icons' && args.path === 'C:/fixtures/icons') {
+          localStorage.setItem('fixture-folder-import', 'true');
+          return { icons: { gog: svg }, failed: false };
         }
         if (command === 'set_provider_icon' && args.store === 'steam') {
           if (args.path) {
@@ -49,6 +66,12 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
   await choose.click();
   await expect(label.locator('img')).toBeVisible();
   await expect(remove).toBeVisible();
+  const importFolder = page.getByRole('button', { name: 'SVG-Ordner importieren' });
+  const gogLabel = page.locator('.provider-icon-row > span').filter({ hasText: /^GOG$/ });
+  await importFolder.click();
+  await expect(gogLabel.locator('img')).toBeVisible();
+  await expect(label.locator('img')).toBeVisible();
+  await expect(page.getByText('Importierte Anbieter-Symbole: 1')).toBeVisible();
   for (const [width, height] of [
     [390, 844],
     [1440, 1060],
@@ -65,6 +88,7 @@ test('imports a provider SVG, reuses the saved copy and returns to text-only lab
   await page.reload();
   await expect(filter.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml,/);
   await settings.click();
+  await expect(gogLabel.locator('img')).toBeVisible();
   await remove.click();
   await expect(choose).toBeFocused();
   await expect(label.locator('img, svg')).toHaveCount(0);

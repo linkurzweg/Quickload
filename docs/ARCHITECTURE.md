@@ -9,6 +9,11 @@ without inserting its markup into the document. The originals are left in place 
 independent of game artwork and general preference resets. Provider labels remain text-only when
 there is no usable SVG.
 
+Folder import runs only after a native directory selection. It checks up to 8,192 direct entries
+and validates up to eight filename-ranked SVGs per provider using the same size and XML checks as
+individual import. A shared write lock keeps folder imports and individual icon changes serialized.
+The folder import fills empty slots and reports any failed saves alongside successful imports.
+
 The signed updater is available only in configured NSIS, MSI, macOS app and AppImage builds.
 Portable Windows and package-managed Linux builds open the fixed GitHub releases page for manual
 downloads. An opt-in check runs once per session at most, after startup and local scanning, with a

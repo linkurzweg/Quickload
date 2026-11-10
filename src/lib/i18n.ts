@@ -126,6 +126,17 @@ const german: Record<string, string> = {
   'Library sources': 'Bibliotheksquellen',
   'Provider icons': 'Anbieter-Symbole',
   'Choose provider icon': 'Anbieter-Symbol auswählen',
+  'Import SVG folder': 'SVG-Ordner importieren',
+  'Match SVG filenames in the selected folder. Existing icons are kept.':
+    'SVGs im gewählten Ordner werden anhand ihrer Dateinamen zugeordnet. Vorhandene Symbole bleiben erhalten.',
+  'Provider icons imported: {count}': 'Importierte Anbieter-Symbole: {count}',
+  'No matching SVGs for providers without icons.':
+    'Keine passenden SVGs für Anbieter ohne Symbol gefunden.',
+  'Some provider icons could not be saved.':
+    'Einige Anbieter-Symbole konnten nicht gespeichert werden.',
+  'Choose a readable local SVG folder.': 'Wähle einen lesbaren lokalen SVG-Ordner aus.',
+  'Choose a folder with at most 8192 entries.':
+    'Wähle einen Ordner mit höchstens 8192 Einträgen aus.',
   'Choose SVG': 'SVG auswählen',
   'Choose SVG for {provider}': 'SVG für {provider} auswählen',
   'SVG image': 'SVG-Bild',

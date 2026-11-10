@@ -602,6 +602,27 @@
     }
   }
 
+  /** Choose a local SVG folder and merge the icons saved by the native import. */
+  async function importProviderIcons() {
+    if (providerIconsBusy) return;
+    providerIconsBusy = true;
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const path = await open({ directory: true, multiple: false, title: t('Import SVG folder') });
+      if (typeof path !== 'string') return;
+      const { icons, failed } = await api.importProviderIcons(path);
+      Object.assign(providerIcons, icons);
+      const count = Object.keys(icons).length;
+      if (failed) error(t('Some provider icons could not be saved.'));
+      else if (count === 0) toast(t('No matching SVGs for providers without icons.'));
+      else toast(t('Provider icons imported: {count}', { count }));
+    } catch (cause) {
+      error(cause);
+    } finally {
+      providerIconsBusy = false;
+    }
+  }
+
   /** Handle form `event`, prevent navigation and persist the manual title/path once per submission. */
   async function addGame(event: SubmitEvent) {
     event.preventDefault();
@@ -1262,6 +1283,15 @@
                 </div>
                 <p class="help-text">
                   {t('Choose a local SVG up to 64 KiB for each provider. Quickload keeps a copy.')}
+                </p>
+                <button
+                  class="text-button"
+                  data-nav
+                  aria-disabled={providerIconsBusy}
+                  onclick={() => void importProviderIcons()}>{t('Import SVG folder')}</button
+                >
+                <p class="help-text">
+                  {t('Match SVG filenames in the selected folder. Existing icons are kept.')}
                 </p>
                 {#each stores as store (store)}
                   {#if store !== 'manual'}

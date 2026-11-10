@@ -69,6 +69,12 @@ export const api = {
   async setProviderIcon(store: Store, path?: string): Promise<string | null> {
     return invoke('set_provider_icon', { store, path });
   },
+  /** Fill empty provider icon slots from the selected local directory and report save failures. */
+  async importProviderIcons(
+    path: string,
+  ): Promise<{ icons: Partial<Record<Store, string>>; failed: boolean }> {
+    return invoke('import_provider_icons', { path });
+  },
   /** Check the fixed release feed and return the newer version, if any. */
   async checkUpdate(): Promise<string | null> {
     return invoke('check_update');
