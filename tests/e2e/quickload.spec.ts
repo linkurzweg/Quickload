@@ -125,7 +125,8 @@ test('new providers have named filters, searchable titles and one card for share
     ['Rockstar Games', 'Grand Theft'],
   ]) {
     const filter = page.locator('.store-filters').getByRole('button', { name: store });
-    await expect(filter.locator('svg[aria-hidden="true"]')).toBeVisible();
+    await expect(filter).toHaveText(store);
+    await expect(filter.locator('img, svg')).toHaveCount(0);
     await filter.click();
     await page.getByRole('textbox', { name: 'Spiele suchen' }).fill(title);
     await expect(page.locator('.game-card')).toHaveCount(1);

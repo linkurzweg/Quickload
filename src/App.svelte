@@ -1267,10 +1267,7 @@
                   {#if store !== 'manual'}
                     <div class="provider-icon-row">
                       <span
-                        ><ProviderIcon {store} svg={providerIcons[store]} />{storeName(
-                          store,
-                          locale,
-                        )}</span
+                        ><ProviderIcon svg={providerIcons[store]} />{storeName(store, locale)}</span
                       >
                       <div>
                         <button
@@ -1449,10 +1446,9 @@
                   data-nav
                   class:chosen={source === store}
                   onclick={() => selectStore(store)}
-                  ><ProviderIcon {store} svg={providerIcons[store]} />{storeName(
-                    store,
-                    locale,
-                  ).split(' · ')[0]}</button
+                  ><ProviderIcon svg={providerIcons[store]} />{storeName(store, locale).split(
+                    ' · ',
+                  )[0]}</button
                 >{/each}
             </div>
             <div class="sort-select">

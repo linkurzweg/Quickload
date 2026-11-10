@@ -6,7 +6,8 @@ Provider icon imports copy at most one 64 KiB UTF-8 SVG per known provider to th
 `provider-icons` directory. A bounded native read validates the XML and returns the SVG to the
 frontend for display as a data URL in an image element. The WebView handles it in image mode,
 without inserting its markup into the document. The originals are left in place and the icons are
-independent of game artwork and general preference resets.
+independent of game artwork and general preference resets. Provider labels remain text-only when
+there is no usable SVG.
 
 The signed updater is available only in configured NSIS, MSI, macOS app and AppImage builds.
 Portable Windows and package-managed Linux builds open the fixed GitHub releases page for manual

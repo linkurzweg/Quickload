@@ -1,7 +1,7 @@
 import { defaults } from '../../src/lib/types';
 import { expect, test } from './fixtures';
 
-test('imports a provider SVG, reuses the saved copy and restores the neutral symbol', async ({
+test('imports a provider SVG, reuses the saved copy and returns to text-only labels', async ({
   page,
 }, testInfo) => {
   await page.addInitScript((settings) => {
@@ -38,12 +38,16 @@ test('imports a provider SVG, reuses the saved copy and restores the neutral sym
   }, defaults);
   await page.goto('/');
   const filter = page.locator('.store-filters').getByRole('button', { name: 'Steam', exact: true });
-  await expect(filter.locator('svg')).toBeVisible();
+  await expect(filter).toHaveText('Steam');
+  await expect(filter.locator('img, svg')).toHaveCount(0);
   const settings = page.getByRole('button', { name: 'Einstellungen', exact: true });
   const choose = page.getByRole('button', { name: 'SVG für Steam auswählen' });
   const remove = page.getByRole('button', { name: 'Symbol für Steam entfernen' });
   await settings.click();
+  const label = page.locator('.provider-icon-row > span').filter({ hasText: /^Steam$/ });
+  await expect(label.locator('img, svg')).toHaveCount(0);
   await choose.click();
+  await expect(label.locator('img')).toBeVisible();
   await expect(remove).toBeVisible();
   for (const [width, height] of [
     [390, 844],
@@ -63,6 +67,8 @@ test('imports a provider SVG, reuses the saved copy and restores the neutral sym
   await settings.click();
   await remove.click();
   await expect(choose).toBeFocused();
+  await expect(label.locator('img, svg')).toHaveCount(0);
   await page.reload();
-  await expect(filter.locator('svg')).toBeVisible();
+  await expect(filter).toHaveText('Steam');
+  await expect(filter.locator('img, svg')).toHaveCount(0);
 });

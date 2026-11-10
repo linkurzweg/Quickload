@@ -191,7 +191,7 @@ Development builds and the local browser preview can request artwork from store 
 
 In **Settings > Provider icons**, select an SVG file up to 64 KiB for each provider. Quickload
 keeps a copy in the local profile so you can move the original file. Remove the copy in Settings
-to restore the neutral symbol. [Simple Icons](https://simpleicons.org/) is one source for SVGs.
+to show only the provider name. [Simple Icons](https://simpleicons.org/) is one source for SVGs.
 Check the [individual icon and trademark terms](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md)
 before using or redistributing a logo.
 

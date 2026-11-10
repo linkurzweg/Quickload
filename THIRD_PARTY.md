@@ -19,8 +19,8 @@ exact versions are recorded in `Cargo.lock` and `pnpm-lock.yaml`.
   `licenses/`. The Evergreen Runtime is a separate Microsoft component with its own terms.
 
 Game names, marks and artwork belong to their respective owners. Quickload uses provider names
-to identify integrations and displays neutral store icons. Quickload has no affiliation with the
-providers or controller manufacturers.
+to identify integrations. Provider labels show text by default and can display user-imported SVGs.
+Quickload has no affiliation with the providers or controller manufacturers.
 Controller glyphs are drawn by Quickload to describe button functions.
 Interface sounds are synthesized by Quickload; no third-party sound recordings are bundled.
 

@@ -1,5 +1,24 @@
 # Validation record — 10 November 2026
 
+## Text-only provider labels and AppImage follow-up — 10 November 2026
+
+- `pnpm check`, the frontend production build, and all 58 Playwright tests passed on Windows.
+  The provider scenarios cover text-only filters and settings labels, SVG import, persistence,
+  removal, and focus restoration. Visually checked provider settings at 390x844, 1440x1060,
+  and 1920x1080 in TV mode.
+- The second private Ubuntu 24.04 audit produced an unsigned v0.2.1 AppImage. Its SHA-256
+  matched the runner manifest. The 96 candidate Ubuntu package versions were unchanged.
+  A separate resource inspection identified the GNOME settings schemas. The source archive
+  and patch for `gsettings-desktop-schemas` 46.1-0ubuntu1 matched their source descriptor.
+- The embedded runtime matched the official x86-64 binary from AppImage/type2-runtime commit
+  `fedfad51acc2860b2916a1eef32ba4a500ff31ef` outside the 16-byte AppImage digest field.
+  The wrapped launcher matched the original AppImageKit continuous asset and the Tauri mirror
+  by SHA-256. The GTK hook matches the template bundled by Tauri CLI 2.12.4.
+- The audit materials contain the Ubuntu source packages, shared license texts, and the runtime
+  and launcher source candidates for the unsigned audit build. The release workflow still needs
+  to collect and verify these materials against the final signed AppImage and deliver them
+  alongside the download. Linux GUI startup and the production update feed were not tested.
+
 ## Public v0.2.1 release preparation — 10 November 2026
 
 - The public CI run [42795870937](https://github.com/linkurzweg/Quickload/actions/runs/42795870937)
